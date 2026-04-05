@@ -64,5 +64,63 @@ namespace MinesweeperLibrary.BusinessLogicLayer
         {
             Console.WriteLine($"\nBoardLogic: Post-setup actions completed for a {board.Size}x{board.Size} board with difficulty {board.Difficulty}\n");
         }
+
+        public void PlaceReward(BoardModel board)
+        {
+            List<(int row, int col)> safeCells = new List<(int row, int col)>();
+
+            for (int i = 0; i < board.Size; i++)
+            {
+                for (int j = 0; j < board.Size; j++)
+                {
+                    if (!board.Cells[i, j].IsBomb)
+                        safeCells.Add((i, j));
+                }
+            }
+
+            if (safeCells.Count > 0)
+            {
+                var randomIndex = _random.Next(safeCells.Count);
+                var (r, c) = safeCells[randomIndex];
+                board.Cells[r, c].HasSpecialReward = true;
+                board.RewardsRemaining = 1;   // one reward available when found
+                Console.WriteLine($"Reward placed at cell {r},{c}");
+            }
+        }
+
+        public GameState DetermineGameState(BoardModel board)
+        {
+            bool lost = false;
+            int totalSafeCells = 0;
+            int visitedSafeCells = 0;
+
+            for (int i = 0; i < board.Size; i++)
+            {
+                for (int j = 0; j < board.Size; j++)
+                {
+                    CellModel cell = board.Cells[i, j];
+
+                    // Lost if player visited a bomb
+                    if (cell.IsVisited && cell.IsBomb)
+                        lost = true;
+
+                    // Count safe (non-bomb) cells
+                    if (!cell.IsBomb)
+                    {
+                        totalSafeCells++;
+                        if (cell.IsVisited)
+                            visitedSafeCells++;
+                    }
+                }
+            }
+
+            if (lost)
+                return GameState.Lost;
+
+            if (visitedSafeCells == totalSafeCells)
+                return GameState.Won;
+
+            return GameState.InProgress;   // StillPlaying
+        }
     }
 }

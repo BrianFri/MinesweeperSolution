@@ -6,5 +6,7 @@ namespace MinesweeperLibrary.BusinessLogicLayer
     {
         void SetupBombs(BoardModel board, int difficultyLevel);
         void CountBombsNearby(BoardModel board);
+        void PlaceReward(BoardModel board);           
+        GameState DetermineGameState(BoardModel board); 
     }
 }
