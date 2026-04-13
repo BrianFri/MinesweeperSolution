@@ -36,8 +36,6 @@ namespace MinesweeperTests
             Assert.Equal(1, board.Cells[0, 3].NumberOfBombNeighbors);
         }
 
-        // ====================== NEW FLOODFILL TESTS (Milestone 3) ======================
-
         [Fact]
         public void FloodFill_OnZeroCell_RevealsLargeConnectedArea()
         {
@@ -59,7 +57,6 @@ namespace MinesweeperTests
                     if (board.Cells[r, c].IsVisited)
                         visitedCount++;
 
-            // Should reveal ALL 24 safe cells (recursion spreads through zeros + bordering numbers)
             Assert.Equal(24, visitedCount);
         }
 
@@ -117,7 +114,7 @@ namespace MinesweeperTests
             // Simple safe board
             logic.CountBombsNearby(board);
 
-            // Manually place reward in the middle (will be reached by flood fill)
+            // Manually place reward in the middle
             board.Cells[2, 2].HasSpecialReward = true;
             board.RewardsRemaining = 1;
 
