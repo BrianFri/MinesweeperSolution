@@ -83,10 +83,50 @@ namespace MinesweeperLibrary.BusinessLogicLayer
                 var randomIndex = _random.Next(safeCells.Count);
                 var (r, c) = safeCells[randomIndex];
                 board.Cells[r, c].HasSpecialReward = true;
-                board.RewardsRemaining = 1;   // one reward available when found
+                board.RewardsRemaining = 1;
                 Console.WriteLine($"Reward placed at cell {r},{c}");
             }
         }
+
+        // RECURSIVE FLOOD FILL
+        public void FloodFill(BoardModel board, int row, int col)
+        {
+            // out of bounds
+            if (row < 0 || row >= board.Size || col < 0 || col >= board.Size)
+                return;
+
+            CellModel cell = board.Cells[row, col];
+
+            // already visited, flagged, or bomb → stop
+            if (cell.IsVisited || cell.IsFlagged || cell.IsBomb)
+                return;
+
+            // Reveal this cell
+            cell.IsVisited = true;
+
+            // If this cell contains the special reward, give it to the player
+            if (cell.HasSpecialReward)
+            {
+                Console.WriteLine("You found a reward! You can now use the bomb detector once.");
+                cell.HasSpecialReward = false;
+                board.RewardsRemaining = 1;
+            }
+
+            // If the cell has neighboring bombs, stop recursion here (standard Minesweeper behavior)
+            if (cell.NumberOfBombNeighbors > 0)
+                return;
+
+            // Recursively reveal all 8 neighbors (this is the recursive part)
+            for (int i = row - 1; i <= row + 1; i++)
+            {
+                for (int j = col - 1; j <= col + 1; j++)
+                {
+                    if (i == row && j == col) continue;
+                    FloodFill(board, i, j);
+                }
+            }
+        }
+
 
         public GameState DetermineGameState(BoardModel board)
         {
@@ -100,11 +140,9 @@ namespace MinesweeperLibrary.BusinessLogicLayer
                 {
                     CellModel cell = board.Cells[i, j];
 
-                    // Lost if player visited a bomb
                     if (cell.IsVisited && cell.IsBomb)
                         lost = true;
 
-                    // Count safe (non-bomb) cells
                     if (!cell.IsBomb)
                     {
                         totalSafeCells++;
@@ -120,7 +158,7 @@ namespace MinesweeperLibrary.BusinessLogicLayer
             if (visitedSafeCells == totalSafeCells)
                 return GameState.Won;
 
-            return GameState.InProgress;   // StillPlaying
+            return GameState.InProgress;
         }
     }
 }

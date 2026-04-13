@@ -40,28 +40,20 @@ namespace MinesweeperConsole
 
                 CellModel cell = board.Cells[row, col];
 
-                if (choice == 1)
+                if (choice == 1)  // Visit the cell
                 {
                     if (cell.IsFlagged)
                     {
                         Console.WriteLine("That cell is flagged. Unflag it first if you want to visit.");
                         continue;
                     }
-
-                    cell.IsVisited = true;
-
-                    // Reward found?
-                    if (cell.HasSpecialReward)
-                    {
-                        Console.WriteLine("You found a reward! You can now use the bomb detector once.");
-                        cell.HasSpecialReward = false;
-                        board.RewardsRemaining = 1;
-                    }
-
-                    // Check if they hit a bomb
                     if (cell.IsBomb)
                     {
-                        board.GameState = GameState.Lost;
+                        cell.IsVisited = true;   // reveal the bomb for the loss screen
+                    }
+                    else
+                    {
+                        logic.FloodFill(board, row, col);   // recursive flood fill
                     }
                 }
                 else if (choice == 2) // Flag / Unflag
