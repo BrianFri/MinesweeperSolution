@@ -232,11 +232,25 @@ namespace MinesweeperWinForms
             int finalScore = CalculateCurrentScore();
             lblScore.Text = $"Score: {finalScore}";
 
-            string message = board.GameState == GameState.Won
-                ? $"Congratulations! You won! Your final score is {finalScore}"
-                : $"Boom! You lost. Final score: {finalScore}";
-
-            MessageBox.Show(message, "Game Over", MessageBoxButtons.OK);
+            if (board.GameState == GameState.Won)
+            {
+                using (NameEntryForm nameForm = new NameEntryForm(finalScore))
+                {
+                    if (nameForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        string playerName = nameForm.PlayerName;
+                        using (HighScoresForm scoresForm = new HighScoresForm(playerName, finalScore))
+                        {
+                            scoresForm.ShowDialog(this);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                string message = $"Boom! You lost. Final score: {finalScore}";
+                MessageBox.Show(message, "Game Over", MessageBoxButtons.OK);
+            }
         }
 
         /// <summary>
