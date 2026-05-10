@@ -32,6 +32,7 @@
             lblStartTime = new Label();
             lblScore = new Label();
             btnRestart = new Button();
+            lblDetector = new Label();
             SuspendLayout();
             // 
             // pnlGrid
@@ -62,7 +63,7 @@
             // 
             // btnRestart
             // 
-            btnRestart.Location = new Point(480, 200);
+            btnRestart.Location = new Point(480, 225);
             btnRestart.Name = "btnRestart";
             btnRestart.Size = new Size(120, 40);
             btnRestart.TabIndex = 3;
@@ -70,11 +71,21 @@
             btnRestart.UseVisualStyleBackColor = true;
             btnRestart.Click += btnRestart_Click;
             // 
+            // lblDetector
+            // 
+            lblDetector.AutoSize = true;
+            lblDetector.Location = new Point(480, 179);
+            lblDetector.Name = "lblDetector";
+            lblDetector.Size = new Size(99, 15);
+            lblDetector.TabIndex = 4;
+            lblDetector.Text = "Bomb Detector: 0";
+            // 
             // GameForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(634, 511);
+            Controls.Add(lblDetector);
             Controls.Add(btnRestart);
             Controls.Add(lblScore);
             Controls.Add(lblStartTime);
@@ -91,5 +102,6 @@
         private Label lblStartTime;
         private Label lblScore;
         private Button btnRestart;
+        private Label lblDetector;
     }
 }

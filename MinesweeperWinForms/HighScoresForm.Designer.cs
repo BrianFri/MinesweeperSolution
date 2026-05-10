@@ -39,6 +39,8 @@
             byDataToolStripMenuItem = new ToolStripMenuItem();
             dataGridView1 = new DataGridView();
             btnOK = new Button();
+            lblAvgScore = new Label();
+            lblAvgTime = new Label();
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
@@ -48,7 +50,7 @@
             menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, sortToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(800, 24);
+            menuStrip1.Size = new Size(798, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             // 
@@ -62,21 +64,21 @@
             // saveToolStripMenuItem
             // 
             saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            saveToolStripMenuItem.Size = new Size(180, 22);
+            saveToolStripMenuItem.Size = new Size(100, 22);
             saveToolStripMenuItem.Text = "Save";
             saveToolStripMenuItem.Click += saveToolStripMenuItem_Click;
             // 
             // loadToolStripMenuItem
             // 
             loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            loadToolStripMenuItem.Size = new Size(180, 22);
+            loadToolStripMenuItem.Size = new Size(100, 22);
             loadToolStripMenuItem.Text = "Load";
             loadToolStripMenuItem.Click += loadToolStripMenuItem_Click;
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(180, 22);
+            exitToolStripMenuItem.Size = new Size(100, 22);
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
@@ -120,7 +122,7 @@
             // 
             // btnOK
             // 
-            btnOK.Location = new Point(362, 411);
+            btnOK.Location = new Point(352, 469);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 23);
             btnOK.TabIndex = 2;
@@ -128,11 +130,31 @@
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
             // 
+            // lblAvgScore
+            // 
+            lblAvgScore.AutoSize = true;
+            lblAvgScore.Location = new Point(31, 423);
+            lblAvgScore.Name = "lblAvgScore";
+            lblAvgScore.Size = new Size(94, 15);
+            lblAvgScore.TabIndex = 3;
+            lblAvgScore.Text = "Average Score: 0";
+            // 
+            // lblAvgTime
+            // 
+            lblAvgTime.AutoSize = true;
+            lblAvgTime.Location = new Point(204, 423);
+            lblAvgTime.Name = "lblAvgTime";
+            lblAvgTime.Size = new Size(167, 15);
+            lblAvgTime.TabIndex = 4;
+            lblAvgTime.Text = "Average Time per Game: 00:00";
+            // 
             // HighScoresForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(798, 600);
+            Controls.Add(lblAvgTime);
+            Controls.Add(lblAvgScore);
             Controls.Add(btnOK);
             Controls.Add(dataGridView1);
             Controls.Add(menuStrip1);
@@ -159,5 +181,7 @@
         private ToolStripMenuItem byDataToolStripMenuItem;
         private DataGridView dataGridView1;
         private Button btnOK;
+        private Label lblAvgScore;
+        private Label lblAvgTime;
     }
 }

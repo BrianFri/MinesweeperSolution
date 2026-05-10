@@ -31,6 +31,7 @@ namespace MinesweeperWinForms
             UpdateAllButtons();
 
             SetupFormLayout();
+            UpdateDetectorStatus();
         }
 
         /// <summary>
@@ -63,7 +64,7 @@ namespace MinesweeperWinForms
         }
 
         /// <summary>
-        /// Sets up a timer that updates the elapsed time and live score every second.
+        /// Sets up a timer that updates the elapsed time, score, and detector status every second.
         /// </summary>
         private void SetupTimer()
         {
@@ -73,15 +74,58 @@ namespace MinesweeperWinForms
                 TimeSpan elapsed = DateTime.Now - gameStartTime;
                 lblStartTime.Text = $"Start Time: {elapsed:mm\\:ss}";
                 lblScore.Text = $"Score: {CalculateCurrentScore()}";
+                UpdateDetectorStatus();
             };
             gameTimer.Start();
         }
 
         /// <summary>
-        /// Updates game display
+        /// Updates the bomb detector status label.
         /// </summary>
-        /// <param name="sender">The button that was clicked</param>
-        /// <param name="e">Mouse event arguments (Left or Right click)</param>
+        private void UpdateDetectorStatus()
+        {
+            if (lblDetector == null) return;
+            lblDetector.Text = $"Bomb Detector: {board.RewardsRemaining}";
+            lblDetector.ForeColor = board.RewardsRemaining > 0 ? Color.DarkGreen : Color.Gray;
+        }
+
+        /// <summary>
+        /// Uses the one-time bomb detector when Ctrl + Left Click is performed.
+        /// </summary>
+        private void UseBombDetector(int row, int col)
+        {
+            if (board.RewardsRemaining <= 0) return;
+
+            CellModel cell = board.Cells[row, col];
+            if (cell.IsVisited || cell.IsFlagged) return;
+
+            board.RewardsRemaining = 0;
+            UpdateDetectorStatus();
+
+            if (cell.IsBomb)
+            {
+                MessageBox.Show("💣 BOMB DETECTED!\n\nThis cell contains a mine.\nYou have been warned, flag it or avoid clicking it!",
+                                "Bomb Detector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                logic.FloodFill(board, row, col);
+            }
+
+            board.GameState = logic.DetermineGameState(board);
+            UpdateAllButtons();
+            lblScore.Text = $"Score: {CalculateCurrentScore()}";
+
+            if (board.GameState != GameState.InProgress)
+            {
+                gameTimer.Stop();
+                HandleGameOver();
+            }
+        }
+
+        /// <summary>
+        /// Handles left-click and right-click actions.
+        /// </summary>
         private void Button_MouseDown(object sender, MouseEventArgs e)
         {
             if (board.GameState != GameState.InProgress) return;
@@ -93,12 +137,18 @@ namespace MinesweeperWinForms
             {
                 int row = tag.Item1;
                 int col = tag.Item2;
-
                 CellModel cell = board.Cells[row, col];
 
                 if (e.Button == MouseButtons.Left)
                 {
                     if (cell.IsFlagged) return;
+
+                    if (Control.ModifierKeys == Keys.Control && board.RewardsRemaining > 0)
+                    {
+                        UseBombDetector(row, col);
+                        return;
+                    }
+
                     if (cell.IsBomb)
                     {
                         cell.IsVisited = true;
@@ -140,10 +190,8 @@ namespace MinesweeperWinForms
         }
 
         /// <summary>
-        /// Updates the text, color, and enabled state of a single button.
+        /// Updates the visual state of a single cell button.
         /// </summary>
-        /// <param name="r">Row index of the cell</param>
-        /// <param name="c">Column index of the cell</param>
         private void UpdateSingleButton(int r, int c)
         {
             if (buttons == null) return;
@@ -151,19 +199,18 @@ namespace MinesweeperWinForms
             Button btn = buttons[r, c];
             CellModel cell = board.Cells[r, c];
 
-
             btn.BackgroundImage = Properties.Resources.Tile_Flat;
             btn.BackgroundImageLayout = ImageLayout.Stretch;
             btn.Text = "";
 
             if (cell.IsFlagged)
             {
-                btn.Text = "F";                                      
+                btn.Text = "F";
                 btn.BackgroundImage = Properties.Resources.Tile_Flat;
             }
             else if (!cell.IsVisited)
             {
-                btn.BackgroundImage = Properties.Resources.Tile_Flat;
+                btn.BackgroundImage = cell.HasSpecialReward ? Properties.Resources.Gold : Properties.Resources.Tile_Flat;
             }
             else if (cell.IsBomb)
             {
@@ -171,17 +218,15 @@ namespace MinesweeperWinForms
             }
             else if (cell.HasSpecialReward)
             {
-                btn.BackgroundImage = Properties.Resources.Gold;     
+                btn.BackgroundImage = Properties.Resources.Gold;
             }
             else if (cell.NumberOfBombNeighbors > 0)
             {
-                // Uses "Number 1", "Number 2", etc.
                 string resourceName = "Number " + cell.NumberOfBombNeighbors;
                 btn.BackgroundImage = (Image)Properties.Resources.ResourceManager.GetObject(resourceName);
             }
             else
             {
-                // Blank revealed safe cell (using one of your revealed tiles)
                 btn.BackgroundImage = Properties.Resources.Tile_1;
             }
 
@@ -189,35 +234,24 @@ namespace MinesweeperWinForms
         }
 
         /// <summary>
-        /// Calculates the player's current score.
+        /// Calculates the player's current score based on revealed cells and time penalty.
         /// </summary>
-        /// <returns>Current score</returns>
         private int CalculateCurrentScore()
         {
-            // Count how many safe cells have been revealed
             int revealedSafeCells = 0;
             for (int r = 0; r < board.Size; r++)
-            {
                 for (int c = 0; c < board.Size; c++)
-                {
-                    CellModel cell = board.Cells[r, c];
-                    if (cell.IsVisited && !cell.IsBomb)
+                    if (board.Cells[r, c].IsVisited && !board.Cells[r, c].IsBomb)
                         revealedSafeCells++;
-                }
-            }
 
-            // Points per revealed safe cell
             int pointsPerCell = 15 * board.Difficulty;
             int scoreFromCells = revealedSafeCells * pointsPerCell;
 
-            // Small time penalty
             TimeSpan elapsed = DateTime.Now - gameStartTime;
-            int seconds = (int)elapsed.TotalSeconds;
-            int timePenalty = seconds * 2;
+            int timePenalty = (int)elapsed.TotalSeconds * 2;
 
             int currentScore = Math.Max(0, scoreFromCells - timePenalty);
 
-            // Big bonus if you win the game
             if (board.GameState == GameState.Won)
                 currentScore += board.Size * board.Size * 25;
 
@@ -225,12 +259,14 @@ namespace MinesweeperWinForms
         }
 
         /// <summary>
-        /// Handles the end of the game (win or loss).
+        /// Handles game over logic (win or loss) and shows the high scores form when winning.
         /// </summary>
         private void HandleGameOver()
         {
             int finalScore = CalculateCurrentScore();
             lblScore.Text = $"Score: {finalScore}";
+
+            TimeSpan playDuration = DateTime.Now - gameStartTime;
 
             if (board.GameState == GameState.Won)
             {
@@ -239,7 +275,10 @@ namespace MinesweeperWinForms
                     if (nameForm.ShowDialog(this) == DialogResult.OK)
                     {
                         string playerName = nameForm.PlayerName;
-                        using (HighScoresForm scoresForm = new HighScoresForm(playerName, finalScore))
+                        using (HighScoresForm scoresForm = new HighScoresForm(
+                            playerName,
+                            finalScore,
+                            (int)playDuration.TotalSeconds))
                         {
                             scoresForm.ShowDialog(this);
                         }
@@ -254,7 +293,7 @@ namespace MinesweeperWinForms
         }
 
         /// <summary>
-        /// Automatically positions the labels and Restart button.
+        /// Positions all controls on the form after the grid is created.
         /// </summary>
         private void SetupFormLayout()
         {
@@ -262,6 +301,7 @@ namespace MinesweeperWinForms
 
             lblStartTime.Location = new Point(rightX, 80);
             lblScore.Location = new Point(rightX, 130);
+            lblDetector.Location = new Point(rightX, 165);
             btnRestart.Location = new Point(rightX, 200);
             btnRestart.Size = new Size(130, 45);
 
@@ -273,8 +313,6 @@ namespace MinesweeperWinForms
         /// <summary>
         /// Event handler for the Restart button.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void btnRestart_Click(object sender, EventArgs e)
         {
             gameTimer?.Stop();

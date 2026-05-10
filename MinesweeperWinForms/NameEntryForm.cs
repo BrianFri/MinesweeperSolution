@@ -15,6 +15,11 @@ namespace MinesweeperWinForms
             lblScore.Text = $"Score: {_score}";
         }
 
+        /// <summary>
+        /// OK event handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtName.Text))
